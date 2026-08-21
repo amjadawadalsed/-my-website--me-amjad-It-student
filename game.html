@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<meta name="theme-color"
+      content="#080b18">
+
+<title>🎈 لعبة البالونات</title>
+
+<style>
+
+/* =====================================================
+   BASIC
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+
+    overflow: hidden;
+
+    font-family:
+        Arial,
+        Tahoma,
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #293b70,
+            #0b1020 60%,
+            #050711
+        );
+
+    color: white;
+
+    user-select: none;
+
+    -webkit-user-select: none;
+}
+
+
+/* =====================================================
+   GAME
+===================================================== */
+
+#gameCanvas {
+
+    position: fixed;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    touch-action: none;
+}
+
+
+/* =====================================================
+   TOP UI
+===================================================== */
+
+#ui {
+
+    position: fixed;
+
+    top: 15px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: min(94%, 700px);
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+
+.ui-box {
+
+    padding: 10px 17px;
+
+    border-radius: 16px;
+
+    background:
+        rgba(10, 15, 35, 0.65);
+
+    border:
+        1px solid rgba(255,255,255,0.15);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.25);
+
+    backdrop-filter: blur(8px);
+
+    font-size: 19px;
+
+    font-weight: bold;
+
+    text-shadow:
+        0 2px 5px rgba(0,0,0,0.6);
+}
+
+
+/* =====================================================
+   TIMER / DANGER
+===================================================== */
+
+#dangerBar {
+
+    position: fixed;
+
+    top: 75px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: min(70%, 420px);
+
+    height: 7px;
+
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.12);
+
+    overflow: hidden;
+
+    z-index: 10;
+}
+
+#dangerFill {
+
+    width: 100%;
+
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #35f59a,
+            #ffe600,
+            #ff3d5a
+        );
+
+    transition:
+        width 0.15s linear;
+}
+
+
+/* =====================================================
+   SCREENS
+===================================================== */
+
+.screen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 50;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-align: center;
+
+    padding: 25px;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(40,50,100,0.72),
+            rgba(3,5,15,0.96)
+        );
+
+    backdrop-filter: blur(7px);
+
+    transition:
+        opacity 0.4s ease;
+}
+
+.hidden {
+
+    display: none !important;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.screen h1 {
+
+    margin: 0 0 12px;
+
+    font-size:
+        clamp(32px, 8vw, 60px);
+
+    color: #ffd83d;
+
+    text-shadow:
+        0 4px 20px rgba(255,210,50,0.35);
+}
+
+
+.screen p {
+
+    max-width: 600px;
+
+    line-height: 1.8;
+
+    font-size: 18px;
+
+    color: #e7eaff;
+}
+
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+.profile {
+
+    width: 120px;
+    height: 120px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border:
+        4px solid #ffd83d;
+
+    box-shadow:
+        0 0 35px rgba(255,216,61,0.35);
+
+    margin-bottom: 20px;
+
+    background: #151a2e;
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.game-btn {
+
+    border: none;
+
+    border-radius: 16px;
+
+    padding: 15px 34px;
+
+    margin-top: 20px;
+
+    font-size: 21px;
+
+    font-weight: bold;
+
+    color: #111;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffe56b,
+            #ffbd18
+        );
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 30px rgba(255,190,30,0.25);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.game-btn:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 14px 35px rgba(255,190,30,0.4);
+}
+
+.game-btn:active {
+
+    transform:
+        scale(0.96);
+}
+
+
+/* =====================================================
+   ADVERTISEMENT
+===================================================== */
+
+.ad-box {
+
+    width: min(94%, 600px);
+
+    margin-top: 18px;
+
+    padding: 13px 18px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,216,61,0.08);
+
+    border:
+        1px solid rgba(255,216,61,0.25);
+
+    color: #fff4b0;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}
+
+.ad-box strong {
+
+    color: #ffd83d;
+}
+
+
+/* =====================================================
+   RESULT
+===================================================== */
+
+#finalScore {
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    color: white;
+
+    margin: 8px 0;
+}
+
+
+/* =====================================================
+   COMBO
+===================================================== */
+
+#comboText {
+
+    position: fixed;
+
+    left: 50%;
+    top: 50%;
+
+    transform:
+        translate(-50%, -50%)
+        scale(0.5);
+
+    z-index: 30;
+
+    font-size:
+        clamp(30px, 8vw, 65px);
+
+    font-weight: 900;
+
+    color: #ffe44c;
+
+    text-shadow:
+        0 5px 20px rgba(255,200,0,0.5);
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+}
+
+#comboText.show {
+
+    opacity: 1;
+
+    transform:
+        translate(-50%, -50%)
+        scale(1.15);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .ui-box {
+
+        font-size: 15px;
+
+        padding:
+            8px 12px;
+    }
+
+    .profile {
+
+        width: 95px;
+        height: 95px;
+    }
+
+    .screen p {
+
+        font-size: 16px;
+    }
+
+}
+
+    /* كل CSS الموجود عندك */
+
+    ...
+
+    /* الكود الجديد */
+
+    .ad-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 25px;
+    }
+
+    .ad-text {
+        flex: 1;
+    }
+
+    .ad-profile {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #ffd83d;
+        box-shadow:
+            0 0 25px rgba(255,216,61,0.35);
+        flex-shrink: 0;
+    }
+
+    .whatsapp-btn {
+        display: inline-block;
+        padding: 10px 18px;
+        border-radius: 12px;
+        background: #25D366;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .whatsapp-btn:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 8px 20px rgba(37,211,102,0.3);
+    }
+
+    @media (max-width: 600px) {
+
+        .ad-content {
+            flex-direction: column;
+        }
+
+        .ad-profile {
+            width: 85px;
+            height: 85px;
+        }
+
+    }
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     CANVAS
+===================================================== -->
+
+<canvas id="gameCanvas"></canvas>
+
+
+<!-- =====================================================
+     UI
+===================================================== -->
+
+<div id="ui">
+
+    <div class="ui-box">
+        🎯 <span id="score">0</span>
+    </div>
+
+    <div class="ui-box">
+        ⭐ المستوى <span id="level">1</span>
+    </div>
+
+    <div class="ui-box">
+        ❤️ <span id="escaped">0</span>/8
+    </div>
+
+</div>
+
+
+<div id="dangerBar">
+
+    <div id="dangerFill"></div>
+
+</div>
+
+
+<div id="comboText">
+    COMBO!
+</div>
+
+
+<!-- =====================================================
+     START SCREEN
+===================================================== -->
+
+<div id="startScreen" class="screen">
+
+    <img
+        src="my-photo.jpg"
+        class="profile"
+        alt="أمجد">
+
+    <h1>
+        🎈 تحدي البالونات
+    </h1>
+
+    <p>
+        هل تستطيع فرقعة البالونات قبل أن تهرب؟
+        <br>
+        كلما ارتفع مستواك أصبحت اللعبة أسرع!
+    </p>
+
+    <button
+        id="startBtn"
+        class="game-btn">
+
+        🎮 ابدأ اللعب
+
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     GAME OVER
+===================================================== -->
+
+<div
+    id="gameOverScreen"
+    class="screen hidden">
+
+    <img
+        src="my-photo.jpg"
+        class="profile"
+        alt="أمجد">
+
+    <h1>
+        🎉 انتهت اللعبة!
+    </h1>
+
+    <div id="finalScore">
+        نقاطك: 0
+    </div>
+
+    <p id="finalMessage">
+        أداء رائع!
+    </p>
+<div class="ad-box">
+
+    <div class="ad-content">
+
+        <div class="ad-text">
+
+            💻 <strong>
+                هل تريد موقعًا أو لعبة لمشروعك؟
+            </strong>
+
+            <br>
+
+            أبدأ معك من فكرة بسيطة إلى مشروع
+            تفاعلي بتصميم احترافي.
+
+            <br><br>
+
+            💲 عروض تبدأ من
+            <strong>
+                $1 — $3 — $5 — $10
+            </strong>
+
+            <br><br>
+
+            <a
+                href="https://wa.me/249112159495"
+                target="_blank"
+                class="whatsapp-btn">
+
+                📱 تواصل معي الآن عبر واتساب
+
+            </a>
+
+        </div>
+
+        <!-- الصورة الثانية -->
+
+        <img
+            src="my-photo2.jpg"
+            class="ad-profile"
+            alt="أمجد">
+
+    </div>
+
+</div>
+
+    <!-- إعلان نصي -->
+
+
+        💻 <strong>
+        هل تريد موقعًا أو لعبة لمشروعك؟
+        </strong>
+
+        <br>
+
+        أبدأ معك من فكرة بسيطة إلى مشروع
+        تفاعلي بتصميم احترافي.
+
+        <br><br>
+
+        💲 عروض تبدأ من
+        <strong>
+        $1 — $3 — $5 — $10
+        </strong>
+
+        <br>
+
+        📱 تواصل معي عبر واتساب أو البريد الإلكتروني.
+
+    </div>
+
+
+    <button
+        id="restartBtn"
+        class="game-btn">
+
+        🔄 العب مرة أخرى
+
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     AUDIO
+===================================================== -->
+
+<audio
+    id="voiceAd"
+    src="voice.mp3"
+    preload="auto">
+</audio>
+
+
+<script>
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const canvas =
+    document.getElementById("gameCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const scoreEl =
+    document.getElementById("score");
+
+const levelEl =
+    document.getElementById("level");
+
+const escapedEl =
+    document.getElementById("escaped");
+
+const dangerFill =
+    document.getElementById("dangerFill");
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const gameOverScreen =
+    document.getElementById("gameOverScreen");
+
+const startBtn =
+    document.getElementById("startBtn");
+
+const restartBtn =
+    document.getElementById("restartBtn");
+
+const finalScoreEl =
+    document.getElementById("finalScore");
+
+const finalMessage =
+    document.getElementById("finalMessage");
+
+const comboText =
+    document.getElementById("comboText");
+
+const voiceAd =
+    document.getElementById("voiceAd");
+
+
+/* =====================================================
+   CANVAS SIZE
+===================================================== */
+
+function resizeCanvas() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+}
+
+resizeCanvas();
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+/* =====================================================
+   GAME VARIABLES
+===================================================== */
+
+let score = 0;
+
+let level = 1;
+
+let escaped = 0;
+
+let maxEscaped = 8;
+
+let balloons = [];
+
+let particles = [];
+
+let gameRunning = false;
+
+let spawnInterval = null;
+
+let animationId = null;
+
+let combo = 0;
+
+let lastPopTime = 0;
+
+let adPlayed = false;
+
+
+/* =====================================================
+   COLORS
+===================================================== */
+
+const colors = [
+
+    "#ff405c",
+    "#36e7ff",
+    "#ffd83d",
+    "#a66cff",
+    "#40ff87",
+    "#ff75d8",
+    "#ff8b3d"
+
+];
+
+
+/* =====================================================
+   AUDIO
+===================================================== */
+
+let audioContext = null;
+
+
+function initAudio() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+    if (
+        audioContext.state ===
+        "suspended"
+    ) {
+
+        audioContext.resume();
+
+    }
+}
+
+
+/* =====================================================
+   POP SOUND
+===================================================== */
+
+function playPopSound() {
+
+    initAudio();
+
+    const osc =
+        audioContext.createOscillator();
+
+    const gain =
+        audioContext.createGain();
+
+    osc.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    osc.frequency.setValueAtTime(
+        700,
+        audioContext.currentTime
+    );
+
+    osc.frequency.exponentialRampToValueAtTime(
+        250,
+        audioContext.currentTime + 0.1
+    );
+
+    gain.gain.setValueAtTime(
+        0.35,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.1
+    );
+
+    osc.start();
+
+    osc.stop(
+        audioContext.currentTime + 0.1
+    );
+}
+
+
+/* =====================================================
+   LEVEL SOUND
+===================================================== */
+
+function playLevelSound() {
+
+    initAudio();
+
+    const frequencies =
+        [523, 659, 784];
+
+    frequencies.forEach(
+        (frequency, index) => {
+
+            const osc =
+                audioContext.createOscillator();
+
+            const gain =
+                audioContext.createGain();
+
+            osc.connect(gain);
+
+            gain.connect(
+                audioContext.destination
+            );
+
+            const time =
+                audioContext.currentTime +
+                index * 0.12;
+
+            osc.frequency.setValueAtTime(
+                frequency,
+                time
+            );
+
+            gain.gain.setValueAtTime(
+                0.3,
+                time
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.01,
+                time + 0.3
+            );
+
+            osc.start(time);
+
+            osc.stop(time + 0.3);
+
+        }
+    );
+}
+
+
+/* =====================================================
+   GAME OVER SOUND
+===================================================== */
+
+function playGameOverSound() {
+
+    initAudio();
+
+    const osc =
+        audioContext.createOscillator();
+
+    const gain =
+        audioContext.createGain();
+
+    osc.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    osc.frequency.setValueAtTime(
+        400,
+        audioContext.currentTime
+    );
+
+    osc.frequency.exponentialRampToValueAtTime(
+        150,
+        audioContext.currentTime + 0.6
+    );
+
+    gain.gain.setValueAtTime(
+        0.35,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.6
+    );
+
+    osc.start();
+
+    osc.stop(
+        audioContext.currentTime + 0.6
+    );
+}
+
+
+/* =====================================================
+   REAL VOICE AD
+===================================================== */
+
+function playVoiceAd() {
+
+    if (adPlayed) return;
+
+    if (!voiceAd) return;
+
+    voiceAd.currentTime = 0;
+
+    const promise =
+        voiceAd.play();
+
+    if (promise !== undefined) {
+
+        promise.catch(
+            error => {
+
+                console.log(
+                    "لم يتم تشغيل الإعلان الصوتي:",
+                    error
+                );
+
+            }
+        );
+
+    }
+
+    adPlayed = true;
+}
+
+
+/* =====================================================
+   BALLOON
+===================================================== */
+
+class Balloon {
+
+    constructor() {
+
+        this.x =
+            50 +
+            Math.random() *
+            (canvas.width - 100);
+
+        this.y =
+            canvas.height + 70;
+
+        this.radius =
+            30 +
+            Math.random() * 22;
+
+        this.speed =
+            1.3 +
+            level * 0.35 +
+            Math.random() * 1.7;
+
+        this.color =
+            colors[
+                Math.floor(
+                    Math.random() *
+                    colors.length
+                )
+            ];
+
+        this.angle =
+            Math.random() *
+            Math.PI *
+            2;
+
+        this.swing =
+            0.5 +
+            Math.random() * 1.5;
+
+    }
+
+
+    update() {
+
+        this.y -=
+            this.speed;
+
+        this.angle +=
+            0.025;
+
+        this.x +=
+            Math.sin(this.angle) *
+            this.swing;
+
+    }
+
+
+    draw() {
+
+        /* shadow */
+
+        ctx.beginPath();
+
+        ctx.arc(
+            this.x + 3,
+            this.y + 5,
+            this.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            "rgba(0,0,0,0.25)";
+
+        ctx.fill();
+
+
+        /* balloon */
+
+        const gradient =
+            ctx.createRadialGradient(
+                this.x - this.radius / 3,
+                this.y - this.radius / 3,
+                2,
+                this.x,
+                this.y,
+                this.radius
+            );
+
+        gradient.addColorStop(
+            0,
+            "#ffffff"
+        );
+
+        gradient.addColorStop(
+            0.15,
+            this.color
+        );
+
+        gradient.addColorStop(
+            1,
+            this.color
+        );
+
+        ctx.beginPath();
+
+        ctx.arc(
+            this.x,
+            this.y,
+            this.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            gradient;
+
+        ctx.fill();
+
+
+        /* shine */
+
+        ctx.beginPath();
+
+        ctx.arc(
+            this.x -
+            this.radius / 3,
+            this.y -
+            this.radius / 3,
+            this.radius / 5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.65)";
+
+        ctx.fill();
+
+
+        /* string */
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            this.x,
+            this.y +
+            this.radius
+        );
+
+        ctx.lineTo(
+            this.x +
+            Math.sin(this.angle) * 8,
+            this.y +
+            this.radius + 35
+        );
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,0.5)";
+
+        ctx.stroke();
+
+    }
+
+
+    isClicked(x, y) {
+
+        const dx =
+            x - this.x;
+
+        const dy =
+            y - this.y;
+
+        return (
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            ) < this.radius
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   PARTICLE
+===================================================== */
+
+class Particle {
+
+    constructor(
+        x,
+        y,
+        color
+    ) {
+
+        this.x = x;
+
+        this.y = y;
+
+        this.vx =
+            (Math.random() - 0.5) *
+            10;
+
+        this.vy =
+            (Math.random() - 0.5) *
+            10;
+
+        this.color =
+            color;
+
+        this.life = 45;
+
+        this.size =
+            2 +
+            Math.random() * 5;
+
+    }
+
+
+    update() {
+
+        this.x +=
+            this.vx;
+
+        this.y +=
+            this.vy;
+
+        this.vy +=
+            0.15;
+
+        this.life--;
+
+    }
+
+
+    draw() {
+
+        ctx.globalAlpha =
+            this.life / 45;
+
+        ctx.fillStyle =
+            this.color;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            this.x,
+            this.y,
+            this.size,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+
+    }
+
+}
+
+
+/* =====================================================
+   EXPLOSION
+===================================================== */
+
+function createExplosion(
+    x,
+    y,
+    color
+) {
+
+    for (
+        let i = 0;
+        i < 25;
+        i++
+    ) {
+
+        particles.push(
+            new Particle(
+                x,
+                y,
+                color
+            )
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SPAWN
+===================================================== */
+
+function spawnBalloon() {
+
+    if (!gameRunning)
+        return;
+
+    balloons.push(
+        new Balloon()
+    );
+
+}
+
+
+/* =====================================================
+   LEVEL
+===================================================== */
+
+function updateLevel() {
+
+    const newLevel =
+        Math.floor(score / 8) + 1;
+
+    if (
+        newLevel >
+        level
+    ) {
+
+        level =
+            newLevel;
+
+        levelEl.textContent =
+            level;
+
+        playLevelSound();
+
+        clearInterval(
+            spawnInterval
+        );
+
+        const rate =
+            Math.max(
+                300,
+                1000 -
+                level * 70
+            );
+
+        spawnInterval =
+            setInterval(
+                spawnBalloon,
+                rate
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   COMBO
+===================================================== */
+
+function updateCombo() {
+
+    const now =
+        Date.now();
+
+    if (
+        now - lastPopTime <
+        900
+    ) {
+
+        combo++;
+
+    } else {
+
+        combo = 1;
+
+    }
+
+    lastPopTime =
+        now;
+
+
+    if (combo >= 3) {
+
+        comboText.textContent =
+            "🔥 COMBO x" +
+            combo;
+
+        comboText.classList.add(
+            "show"
+        );
+
+        setTimeout(
+            () => {
+
+                comboText.classList.remove(
+                    "show"
+                );
+
+            },
+            450
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CLICK / TOUCH
+===================================================== */
+
+function handleClick(e) {
+
+    if (!gameRunning)
+        return;
+
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    let clientX;
+    let clientY;
+
+
+    if (
+        e.touches &&
+        e.touches.length
+    ) {
+
+        clientX =
+            e.touches[0].clientX;
+
+        clientY =
+            e.touches[0].clientY;
+
+    } else {
+
+        clientX =
+            e.clientX;
+
+        clientY =
+            e.clientY;
+
+    }
+
+
+    const x =
+        clientX -
+        rect.left;
+
+    const y =
+        clientY -
+        rect.top;
+
+
+    /* من الأعلى للأسفل */
+
+    for (
+        let i =
+            balloons.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const balloon =
+            balloons[i];
+
+
+        if (
+            balloon.isClicked(
+                x,
+                y
+            )
+        ) {
+
+            createExplosion(
+                balloon.x,
+                balloon.y,
+                balloon.color
+            );
+
+            playPopSound();
+
+            balloons.splice(
+                i,
+                1
+            );
+
+            score++;
+
+            scoreEl.textContent =
+                score;
+
+            updateCombo();
+
+            updateLevel();
+
+            break;
+
+        }
+
+    }
+
+}
+
+
+/* =====================================================
+   GAME OVER
+===================================================== */
+
+function gameOver() {
+
+    if (!gameRunning)
+        return;
+
+    gameRunning =
+        false;
+
+    clearInterval(
+        spawnInterval
+    );
+
+    playGameOverSound();
+
+
+    finalScoreEl.textContent =
+        "🎯 نقاطك: " +
+        score;
+
+
+    if (score >= 30) {
+
+        finalMessage.textContent =
+            "🔥 مذهل! أنت سريع جدًا!";
+
+    } else if (score >= 15) {
+
+        finalMessage.textContent =
+            "👏 أداء ممتاز!";
+
+    } else {
+
+        finalMessage.textContent =
+            "💪 حاول مرة أخرى وحطم رقمك!";
+
+    }
+
+
+    gameOverScreen.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+function gameLoop() {
+
+    if (!gameRunning)
+        return;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /* background particles */
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        const x =
+            (i * 97) %
+            canvas.width;
+
+        const y =
+            (i * 173) %
+            canvas.height;
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.06)";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    }
+
+
+    /* balloons */
+
+    for (
+        let i =
+            balloons.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const balloon =
+            balloons[i];
+
+        balloon.update();
+
+        balloon.draw();
+
+
+        if (
+            balloon.y <
+            -balloon.radius - 50
+        ) {
+
+            balloons.splice(
+                i,
+                1
+            );
+
+            escaped++;
+
+            escapedEl.textContent =
+                escaped;
+
+
+            if (
+                escaped >=
+                maxEscaped
+            ) {
+
+                gameOver();
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+    /* particles */
+
+    for (
+        let i =
+            particles.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const particle =
+            particles[i];
+
+        particle.update();
+
+        particle.draw();
+
+
+        if (
+            particle.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+
+    /* danger */
+
+    const danger =
+        Math.max(
+            0,
+            100 -
+            (escaped /
+                maxEscaped) *
+                100
+        );
+
+    dangerFill.style.width =
+        danger + "%";
+
+
+    animationId =
+        requestAnimationFrame(
+            gameLoop
+        );
+
+}
+
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame() {
+
+    initAudio();
+
+    /*
+       الإعلان الصوتي الحقيقي
+       يعمل عند أول بداية للعبة فقط
+    */
+
+    playVoiceAd();
+
+
+    score = 0;
+
+    level = 1;
+
+    escaped = 0;
+
+    combo = 0;
+
+    balloons = [];
+
+    particles = [];
+
+    gameRunning =
+        true;
+
+
+    scoreEl.textContent =
+        "0";
+
+    levelEl.textContent =
+        "1";
+
+    escapedEl.textContent =
+        "0";
+
+    dangerFill.style.width =
+        "100%";
+
+
+    startScreen.classList.add(
+        "hidden"
+    );
+
+    gameOverScreen.classList.add(
+        "hidden"
+    );
+
+
+    clearInterval(
+        spawnInterval
+    );
+
+
+    spawnInterval =
+        setInterval(
+            spawnBalloon,
+            1000
+        );
+
+
+    spawnBalloon();
+
+
+    cancelAnimationFrame(
+        animationId
+    );
+
+
+    gameLoop();
+
+}
+
+
+/* =====================================================
+   RESTART
+===================================================== */
+
+function restartGame() {
+
+    startGame();
+
+}
+
+
+/* =====================================================
+   EVENTS
+===================================================== */
+
+canvas.addEventListener(
+    "touchstart",
+    handleClick,
+    {
+        passive: true
+    }
+);
+
+canvas.addEventListener(
+    "mousedown",
+    handleClick
+);
+
+
+startBtn.addEventListener(
+    "click",
+    startGame
+);
+
+
+restartBtn.addEventListener(
+    "click",
+    restartGame
+);
+
+
+/* =====================================================
+   PREVENT CONTEXT MENU
+===================================================== */
+
+canvas.addEventListener(
+    "contextmenu",
+    event => {
+        event.preventDefault();
+    }
+);
+
+
+/* =====================================================
+   READY
+===================================================== */
+
+console.log(
+    "🎈 Balloon Game V4 loaded successfully!"
+);
+
+</script>
+
+</body>
+</html>
