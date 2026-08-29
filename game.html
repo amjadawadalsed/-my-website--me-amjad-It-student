@@ -152,15 +152,11 @@
         <input type="text" id="playerName" placeholder="اكتب اسمك للمنافسة..." maxlength="15">
         <button id="startBtn" class="game-btn">🎮 ابدأ اللعب</button>
 <div style="margin-top: 20px; text-align: center;">
-    <button onclick="addLike()" style="padding: 10px; cursor: pointer; border-radius: 5px;">
-        👍 إعجاب (<span id="likeCount">0</span>)
-    </button>
     
-    <button onclick="addDislike()" style="padding: 10px; cursor: pointer; border-radius: 5px;">
-        👎 لم يعجبني (<span id="dislikeCount">0</span>)
-    </button>
 </div>
-
+<div style="color: #ffaa00; font-size: 15px; text-align: center; margin: 12px 0; font-weight: bold; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 5px;">
+    😂 يا هكر ربنا يهديك.. بدل ما تمشي تهكر إسرائيل جاي تهكر قائمتي البسيطة؟ الكلام دا عيب، ومن غشنا فليس منا 🙂
+</div>
         <div id="leaderboard">
             <h3>🏆 أفضل 10 لاعبين</h3>
             <ul id="leaderboardList">
@@ -184,36 +180,9 @@
 /* =====================================================
    SUPABASE INTEGRATION
 ===================================================== */
-let currentLikes = 0;
-let currentDislikes = 0;
 
-// دالة لجلب الإحصائيات عند فتح اللعبة
-async function loadStats() {
-    const { data, error } = await supabaseClient.from('game_stats').select('*').eq('id', 1).single();
-    if (data) {
-        currentLikes = data.likes;
-        currentDislikes = data.dislikes;
-        document.getElementById('likeCount').innerText = currentLikes;
-        document.getElementById('dislikeCount').innerText = currentDislikes;
-    }
-}
 
-// دالة زيادة الإعجاب
-async function addLike() {
-    currentLikes++;
-    document.getElementById('likeCount').innerText = currentLikes; // تحديث الرقم في الشاشة فوراً
-    await supabaseClient.from('game_stats').update({ likes: currentLikes }).eq('id', 1);
-}
 
-// دالة زيادة الدس لايك
-async function addDislike() {
-    currentDislikes++;
-    document.getElementById('dislikeCount').innerText = currentDislikes; // تحديث الرقم في الشاشة فوراً
-    await supabaseClient.from('game_stats').update({ dislikes: currentDislikes }).eq('id', 1);
-}
-
-// تشغيل دالة الجلب بمجرد تحميل الصفحة
-loadStats();
 const supabaseUrl = 'https://ixydsqscrcgktkdfpqcl.supabase.co';
 const supabaseKey = 'sb_publishable_0z8biKJnXn8-Y9fYnD_S2w_VqmuQ7nH';
 var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -515,7 +484,7 @@ function startGame() {
     }
     
     initAudio(); playVoiceAd();
-    score = 0; level = 1; escaped = 0; combo = 0; balloons = []; particles = [];
+     score = 0; level = 1; escaped = 0; combo = 0; balloons = []; particles = [];
     scoreEl.textContent = "0"; levelEl.textContent = "1"; escapedEl.textContent = "0";
     dangerFill.style.width = "100%"; document.getElementById('saveStatus').textContent = "";
     
