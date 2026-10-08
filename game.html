@@ -1,507 +1,485 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#080b18">
-    <title>🎈 تحدي البالونات</title>
-    <!-- مكتبة Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        /* =====================================================
-           BASIC
-        ===================================================== */
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
-        body {
-            overflow: hidden;
-            font-family: Arial, Tahoma, sans-serif;
-            background: radial-gradient(circle at top, #293b70, #0b1020 60%, #050711);
-            color: white;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080b18">
+<title>🎈 تحدي البالونات</title>
+<!-- مكتبة Supabase (إصدار مثبّت) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;height:100%}
+body{overflow:hidden;font-family:Arial,Tahoma,sans-serif;background:radial-gradient(circle at top,#293b70,#0b1020 60%,#050711);color:#fff;user-select:none;-webkit-user-select:none;touch-action:none}
+input[type="text"]{user-select:text;-webkit-user-select:text}
+#gameCanvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
-        /* =====================================================
-           GAME & UI
-        ===================================================== */
-        #gameCanvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-        
-        #ui {
-            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-            width: min(94%, 500px); display: flex; justify-content: space-between;
-            align-items: center; z-index: 10; pointer-events: none;
-        }
-        .ui-box {
-            padding: 10px 17px; border-radius: 16px; background: rgba(10, 15, 35, 0.65);
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-            backdrop-filter: blur(8px); font-size: 17px; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.6);
-        }
+/* HUD */
+#ui{position:fixed;top:12px;left:50%;transform:translateX(-50%);width:min(calc(100% - 112px),460px);display:flex;gap:6px;z-index:10;pointer-events:none}
+.ui-box{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 6px;border-radius:14px;background:rgba(10,15,35,.72);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.3);line-height:1.2;text-shadow:0 2px 5px rgba(0,0,0,.6)}
+.ui-box small{font-size:11px;color:#c3cbf5}
+.ui-box b{font-size:20px}
+#scoreBox b{color:#ffd83d}#levelBox b{color:#36e7ff}#escBox b{color:#ff9aab}
+#escBox.warn{border-color:#ff3d5a;animation:warn .6s infinite alternate}
+@keyframes warn{to{box-shadow:0 0 16px #ff3d5a}}
+#levelBox.pulse{animation:pulse .6s}
+@keyframes pulse{40%{transform:scale(1.18);border-color:#36e7ff}}
+#dangerBar{position:fixed;top:66px;left:50%;transform:translateX(-50%);width:min(70%,420px);height:7px;border-radius:20px;background:rgba(255,255,255,.12);overflow:hidden;z-index:10}
+#dangerFill{width:100%;height:100%;background:linear-gradient(90deg,#35f59a,#ffe600,#ff3d5a);transition:width .15s linear}
+.icon-btn{position:fixed;top:12px;z-index:200;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(10,15,35,.78);color:#fff;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+#soundBtn{right:10px}
+#pauseBtn{left:10px;display:none}
+body.playing #pauseBtn{display:flex}
 
-        #dangerBar {
-            position: fixed; top: 75px; left: 50%; transform: translateX(-50%);
-            width: min(70%, 420px); height: 7px; border-radius: 20px;
-            background: rgba(255,255,255,0.12); overflow: hidden; z-index: 10;
-        }
-        #dangerFill {
-            width: 100%; height: 100%; background: linear-gradient(90deg, #35f59a, #ffe600, #ff3d5a);
-            transition: width 0.15s linear;
-        }
+/* الإعلان: أسفل اليسار، يُطوى أثناء اللعب */
+#topLeftWidget{position:fixed;bottom:12px;left:12px;z-index:100;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.photo-btn{width:46px;height:46px;padding:0;border-radius:50%;overflow:hidden;border:2px solid #ffd83d;box-shadow:0 0 15px rgba(255,216,61,.35);background:#151a2e;color:#fff;font-size:22px;cursor:pointer;touch-action:manipulation}
+.small-profile{width:100%;height:100%;object-fit:cover;display:block}
+.ad-box{width:min(220px,calc(100vw - 24px));padding:10px;border-radius:10px;background:rgba(10,15,35,.9);border:1px solid rgba(255,216,61,.25);color:#fff4b0;font-size:12px;line-height:1.5;text-align:right}
+.ad-box strong{color:#ffd83d}
+body.playing #topLeftWidget:not(.open) .ad-box{display:none}
+.whatsapp-btn{display:block;padding:7px 12px;margin-top:8px;border-radius:8px;background:#25D366;color:#fff;font-weight:bold;text-decoration:none;font-size:12px;text-align:center}
 
-        /* =====================================================
-           TOP LEFT WIDGET (Profile & Ad)
-        ===================================================== */
-        #topLeftWidget {
-            position: fixed; top: 15px; left: 15px; z-index: 100;
-            display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
-        }
-        .small-profile {
-            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
-            border: 2px solid #ffd83d; box-shadow: 0 0 15px rgba(255,216,61,0.35); background: #151a2e;
-        }
-        .ad-box {
-            width: 220px; padding: 10px; border-radius: 10px;
-            background: rgba(10, 15, 35, 0.85); border: 1px solid rgba(255,216,61,0.25);
-            color: #fff4b0; font-size: 12px; line-height: 1.5; backdrop-filter: blur(5px);
-        }
-        .ad-box strong { color: #ffd83d; }
-        .whatsapp-btn {
-            display: inline-block; padding: 6px 12px; margin-top: 8px; border-radius: 8px;
-            background: #25D366; color: white; font-weight: bold; text-decoration: none;
-            transition: 0.2s ease; font-size: 11px; text-align: center; width: 100%;
-        }
+/* الشاشات */
+.screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 20px 175px;background:radial-gradient(circle at center,rgba(40,50,100,.88),rgba(3,5,15,.98));backdrop-filter:blur(7px);overflow-y:auto}
+.screen>:first-child{margin-top:auto}
+.screen>:last-child{margin-bottom:auto}
+@media(min-width:700px){.screen{padding-bottom:25px}}
+.hidden{display:none!important}
+.screen h1{margin:0 0 12px;font-size:clamp(26px,6vw,45px);color:#ffd83d;text-shadow:0 4px 20px rgba(255,210,50,.35)}
+.screen p{max-width:600px;line-height:1.6;font-size:16px;color:#e7eaff;margin:8px 0}
+input[type="text"]{padding:12px 20px;border-radius:12px;border:2px solid #ffd83d;background:rgba(255,255,255,.1);color:#fff;font-size:18px;text-align:center;margin-bottom:8px;outline:none;width:min(100%,300px)}
+input.bad{border-color:#ff3d5a;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.err{min-height:20px;color:#ff9aab;font-size:14px;margin-bottom:6px}
+.game-btn{border:none;border-radius:16px;padding:14px 32px;margin-top:10px;font-size:21px;font-weight:bold;color:#111;cursor:pointer;background:linear-gradient(135deg,#ffe56b,#ffbd18);box-shadow:0 10px 30px rgba(255,190,30,.25);touch-action:manipulation}
+.game-btn:active{transform:scale(.96)}
+.game-btn.alt{background:rgba(255,255,255,.14);color:#fff;box-shadow:none;font-size:16px;padding:10px 22px}
+.warn-msg{color:#ffaa00;font-size:12px;margin:12px 0;font-weight:bold;background:rgba(0,0,0,.5);padding:8px;border-radius:5px;max-width:420px}
+#leaderboard{margin-top:16px;width:min(100%,350px);background:rgba(0,0,0,.4);border-radius:15px;padding:15px;border:1px solid rgba(255,255,255,.1)}
+#leaderboard h3{margin:0 0 10px;color:#35f59a;font-size:18px}
+#leaderboardList{list-style:none;padding:0;margin:0;text-align:right;max-height:34vh;overflow-y:auto}
+#leaderboardList li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(255,255,255,.05);padding:8px 0;font-size:14px}
+#leaderboardList li .time{color:#8892b0;font-size:12px;white-space:nowrap}
 
-        /* =====================================================
-           SCREENS & LEADERBOARD
-        ===================================================== */
-        .screen {
-            position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; padding: 25px;
-            background: radial-gradient(circle at center, rgba(40,50,100,0.85), rgba(3,5,15,0.98));
-            backdrop-filter: blur(7px); transition: opacity 0.4s ease; overflow-y: auto;
-        }
-        .hidden { display: none !important; }
-        .screen h1 { margin: 0 0 12px; font-size: clamp(28px, 6vw, 45px); color: #ffd83d; text-shadow: 0 4px 20px rgba(255,210,50,0.35); }
-        .screen p { max-width: 600px; line-height: 1.6; font-size: 16px; color: #e7eaff; }
-
-        input[type="text"] {
-            padding: 12px 20px; border-radius: 12px; border: 2px solid #ffd83d;
-            background: rgba(255,255,255,0.1); color: white; font-size: 18px;
-            text-align: center; margin-bottom: 15px; outline: none; width: min(100%, 300px);
-        }
-        
-        .game-btn {
-            border: none; border-radius: 16px; padding: 15px 34px; margin-top: 10px;
-            font-size: 21px; font-weight: bold; color: #111; cursor: pointer;
-            background: linear-gradient(135deg, #ffe56b, #ffbd18);
-            box-shadow: 0 10px 30px rgba(255,190,30,0.25); transition: 0.2s ease;
-        }
-        .game-btn:active { transform: scale(0.96); }
-
-        #leaderboard {
-            margin-top: 25px; width: min(100%, 350px); background: rgba(0,0,0,0.4);
-            border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);
-        }
-        #leaderboard h3 { margin: 0 0 10px 0; color: #35f59a; font-size: 18px; }
-        #leaderboardList { list-style: none; padding: 0; margin: 0; text-align: right; }
-        #leaderboardList li {
-            display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding: 8px 0; font-size: 14px;
-        }
-        #leaderboardList li span.time { color: #8892b0; font-size: 12px; }
-
-        #comboText {
-            position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.5);
-            z-index: 30; font-size: clamp(30px, 8vw, 65px); font-weight: 900; color: #ffe44c;
-            opacity: 0; pointer-events: none; transition: transform 0.25s ease, opacity 0.25s ease;
-        }
-        #comboText.show { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
-    </style>
+/* تأثيرات */
+#comboText{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.5);z-index:30;font-size:clamp(28px,8vw,60px);font-weight:900;color:#ffe44c;opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+#comboText.show{opacity:1;transform:translate(-50%,-50%) scale(1.15)}
+#levelBanner{position:fixed;left:50%;top:30%;transform:translateX(-50%);z-index:31;font-size:clamp(26px,7vw,52px);font-weight:900;color:#36e7ff;pointer-events:none;opacity:0;white-space:nowrap;text-shadow:0 0 24px rgba(54,231,255,.7),0 4px 14px rgba(0,0,0,.6)}
+#levelBanner.show{animation:lvl 1.2s ease-out}
+@keyframes lvl{0%{opacity:0;transform:translateX(-50%) scale(.6)}20%{opacity:1;transform:translateX(-50%) scale(1.15)}70%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1.05)}}
+@media(max-width:480px){.screen p{font-size:14px}.game-btn{font-size:18px;padding:12px 26px}.ui-box b{font-size:18px}}
+@media(max-height:480px){.screen h1{font-size:24px}.screen{padding-bottom:20px}}
+</style>
 </head>
 <body>
 
-    <!-- Widget Top Left -->
-    <div id="topLeftWidget">
-        <img src="my-photo.jpg" class="small-profile" alt="أمجد">
-        <div class="ad-box">
-            💻 <strong>هل تريد موقعًا أو لعبة؟</strong><br>
-            أبدأ معك من فكرة لمشروع تفاعلي احترافي.<br>
-            💲 تبدأ من <strong>$1 — $10</strong>
-            <a href="https://wa.me/249112159495" target="_blank" class="whatsapp-btn">📱 تواصل واتساب</a>
-        </div>
+<button id="soundBtn" class="icon-btn" aria-label="كتم / تشغيل الصوت">🔊</button>
+<button id="pauseBtn" class="icon-btn" aria-label="إيقاف مؤقت">⏸</button>
+
+<div id="topLeftWidget">
+    <div class="ad-box">
+        💻 <strong>هل تريد موقعًا أو لعبة؟</strong><br>
+        أبدأ معك من فكرة لمشروع تفاعلي احترافي.<br>
+        💲 تبدأ من <strong>$1 — $10</strong>
+        <a href="https://wa.me/249112159495" target="_blank" rel="noopener" class="whatsapp-btn">📱 تواصل واتساب</a>
     </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <div id="ui">
-        <div class="ui-box">🎯 <span id="score">0</span></div>
-        <div class="ui-box">⭐ المستوى <span id="level">1</span></div>
-        <div class="ui-box">❤️ <span id="escaped">0</span>/8</div>
-    </div>
-    
-    <div id="dangerBar"><div id="dangerFill"></div></div>
-    <div id="comboText">COMBO!</div>
-
-    <!-- START SCREEN -->
-    <div id="startScreen" class="screen">
-        <h1>🎈 تحدي البالونات</h1>
-        <p>فرقع البالونات قبل هروبها! كلما ارتفع مستواك أصبحت أسرع!</p>
-        
-        <input type="text" id="playerName" placeholder="اكتب اسمك للمنافسة..." maxlength="15">
-        <button id="startBtn" class="game-btn">🎮 ابدأ اللعب</button>
-<div style="margin-top: 20px; text-align: center;">
-    
+    <button id="adToggle" class="photo-btn" aria-label="الإعلان"><img src="my-photo.jpg" class="small-profile" alt="أمجد" onerror="this.parentNode.textContent='💻'"></button>
 </div>
-<div style="color: #ffaa00; font-size: 15px; text-align: center; margin: 12px 0; font-weight: bold; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 5px;">
-    😂 يا هكر ربنا يهديك.. بدل ما تمشي تهكر إسرائيل جاي تهكر قائمتي البسيطة؟ الكلام دا عيب، ومن غشنا فليس منا 🙂
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui">
+    <div class="ui-box" id="scoreBox"><small>🎯 النقاط</small><b id="score">0</b></div>
+    <div class="ui-box" id="levelBox"><small>⭐ المستوى</small><b id="level">1</b></div>
+    <div class="ui-box" id="escBox"><small>🎈 هروب</small><b><span id="escaped">0</span>/8</b></div>
 </div>
-        <div id="leaderboard">
-            <h3>🏆 أفضل 10 لاعبين</h3>
-            <ul id="leaderboardList">
-                <li>جاري التحميل...</li>
-            </ul>
-        </div>
-    </div>
+<div id="dangerBar"><div id="dangerFill"></div></div>
+<div id="comboText">COMBO!</div>
+<div id="levelBanner"></div>
 
-    <!-- GAME OVER SCREEN -->
-    <div id="gameOverScreen" class="screen hidden">
-        <h1>🎉 انتهت اللعبة!</h1>
-        <div id="finalScore" style="font-size:28px; font-weight:bold; margin:10px 0;">نقاطك: 0</div>
-        <p id="finalMessage">أداء رائع!</p>
-        <p id="saveStatus" style="color:#35f59a; font-size:14px; margin-bottom:15px;"></p>
-        <button id="restartBtn" class="game-btn">🔄 العب مرة أخرى</button>
+<!-- START SCREEN -->
+<div id="startScreen" class="screen">
+    <h1>🎈 تحدي البالونات</h1>
+    <p>فرقع البالونات قبل هروبها! كلما ارتفع مستواك أصبحت أسرع!</p>
+    <input type="text" id="playerName" placeholder="اكتب اسمك للمنافسة..." maxlength="15" autocomplete="off" enterkeyhint="go">
+    <div id="nameError" class="err"></div>
+    <button id="startBtn" class="game-btn">🎮 ابدأ اللعب</button>
+    <div class="warn-msg">😂 يا هكر ربنا يهديك.. بدل ما تمشي تهكر إسرائيل جاي تهكر قائمتي البسيطة؟ الكلام دا عيب، ومن غشنا فليس منا 🙂</div>
+    <div id="leaderboard">
+        <h3>🏆 أفضل 10 لاعبين</h3>
+        <ul id="leaderboardList"><li>جاري التحميل...</li></ul>
     </div>
+</div>
 
-    <audio id="voiceAd" src="voice.mp3" preload="auto"></audio>
+<!-- PAUSE SCREEN -->
+<div id="pauseScreen" class="screen hidden">
+    <h1>⏸ إيقاف مؤقت</h1>
+    <button id="resumeBtn" class="game-btn">▶ متابعة</button>
+    <button id="quitBtn" class="game-btn alt">🏠 القائمة</button>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div id="gameOverScreen" class="screen hidden">
+    <h1>🎉 انتهت اللعبة!</h1>
+    <div id="finalScore" style="font-size:28px;font-weight:bold;margin:10px 0">نقاطك: 0</div>
+    <p id="finalMessage">أداء رائع!</p>
+    <p id="saveStatus" style="color:#35f59a;font-size:14px;margin-bottom:8px"></p>
+    <button id="retryBtn" class="game-btn alt hidden">🔁 أعد محاولة الحفظ</button>
+    <button id="restartBtn" class="game-btn">🔄 العب مرة أخرى</button>
+    <button id="menuBtn" class="game-btn alt">🏠 القائمة</button>
+</div>
+
+<audio id="voiceAd" src="voice.mp3" preload="auto"></audio>
 
 <script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+
 /* =====================================================
-   SUPABASE INTEGRATION
+   SUPABASE (اللعبة تعمل حتى لو فشل التحميل)
 ===================================================== */
+const SUPABASE_URL = 'https://ixydsqscrcgktkdfpqcl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0z8biKJnXn8-Y9fYnD_S2w_VqmuQ7nH';
+let sb = null;
+try { if (window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
+catch (e) { console.error('Supabase init failed:', e); }
 
-
-
-const supabaseUrl = 'https://ixydsqscrcgktkdfpqcl.supabase.co';
-const supabaseKey = 'sb_publishable_0z8biKJnXn8-Y9fYnD_S2w_VqmuQ7nH';
-var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+const withTimeout = (p, ms = 10000) =>
+    Promise.race([Promise.resolve(p), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
 
 async function fetchLeaderboard() {
-    const list = document.getElementById('leaderboardList');
+    const list = $('leaderboardList');
+    const msg = t => { list.textContent = ''; const li = document.createElement('li'); li.textContent = t; list.appendChild(li); };
+    if (!sb) { msg('المتصدرون غير متاحين حاليًا.'); return; }
     try {
-        const { data, error } = await supabaseClient
-            .from('scores')
-            .select('*')
-            .order('score', { ascending: false })
-            .limit(10);
-            
+        const { data, error } = await withTimeout(sb.from('scores').select('name,score,created_at')
+            .order('score', { ascending: false }).order('created_at', { ascending: true }).limit(10));
         if (error) throw error;
-        
-        list.innerHTML = '';
-        if (data.length === 0) {
-            list.innerHTML = '<li>لا توجد نتائج بعد. كن الأول!</li>';
-            return;
-        }
-
-        data.forEach((row, index) => {
-            const timeStr = new Date(row.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-            list.innerHTML += `<li>
-                <span>${index + 1}. ${row.name || 'مجهول'} (<strong>${row.score}</strong>)</span>
-                <span class="time">${timeStr}</span>
-            </li>`;
+        if (!data || !data.length) { msg('لا توجد نتائج بعد. كن الأول!'); return; }
+        list.textContent = '';
+        data.forEach((row, i) => {
+            const li = document.createElement('li'), a = document.createElement('span'),
+                  t = document.createElement('span'), s = document.createElement('strong');
+            s.textContent = row.score;
+            a.append((i + 1) + '. ' + String(row.name || 'مجهول').slice(0, 15) + ' (', s, ')');
+            t.className = 'time';
+            const d = new Date(row.created_at);
+            t.textContent = isNaN(d) ? '' : d.toLocaleString('ar-EG', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+            li.append(a, t); list.appendChild(li);
         });
-    } catch (err) {
-        console.error("خطأ في جلب البيانات:", err);
-        list.innerHTML = '<li>تعذر تحميل القائمة.</li>';
-    }
+    } catch (e) { console.error('Leaderboard error:', e); msg('تعذر تحميل القائمة.'); }
 }
 
+let saving = false;
 async function saveScore(name, finalScore) {
-    const statusText = document.getElementById('saveStatus');
-    if (!name || finalScore === 0) return;
-    
-    statusText.textContent = "جاري حفظ النتيجة ☁️...";
+    const st = $('saveStatus'), rb = $('retryBtn');
+    rb.classList.add('hidden');
+    if (!name || !finalScore || saving) return;
+    if (!sb) { st.style.color = '#ffb347'; st.textContent = '⚠️ المتصدرون غير متاحين الآن، لم تُحفظ النتيجة.'; return; }
+    saving = true; st.style.color = '#35f59a'; st.textContent = 'جاري حفظ النتيجة ☁️...';
     try {
-        const { error } = await supabaseClient
-            .from('scores')
-            .insert([{ name: name, score: finalScore }]);
-            
+        const { error } = await withTimeout(sb.from('scores').insert([{ name: name, score: finalScore }]));
         if (error) throw error;
-        statusText.textContent = "✅ تم تسجيل نتيجتك بنجاح!";
-        fetchLeaderboard(); // تحديث القائمة للمرة القادمة
-    } catch (err) {
-        console.error("خطأ في الحفظ:", err);
-        statusText.textContent = "❌ فشل حفظ النتيجة.";
-    }
+        st.textContent = '✅ تم تسجيل نتيجتك بنجاح!';
+        fetchLeaderboard();
+    } catch (e) {
+        console.error('Save error:', e);
+        st.style.color = '#ff9aab'; st.textContent = '❌ تعذر حفظ النتيجة. تحقق من الإنترنت ثم أعد المحاولة.';
+        rb.classList.remove('hidden');
+    } finally { saving = false; }
 }
 
-// استدعاء أولي للقائمة
-fetchLeaderboard();
-
 /* =====================================================
-   ELEMENTS & VARIABLES
+   STATE & ELEMENTS
 ===================================================== */
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const scoreEl = document.getElementById("score");
-const levelEl = document.getElementById("level");
-const escapedEl = document.getElementById("escaped");
-const dangerFill = document.getElementById("dangerFill");
-const startScreen = document.getElementById("startScreen");
-const gameOverScreen = document.getElementById("gameOverScreen");
-const comboText = document.getElementById("comboText");
-const voiceAd = document.getElementById("voiceAd");
+const canvas = $('gameCanvas'), ctx = canvas.getContext('2d');
+const scoreEl = $('score'), levelEl = $('level'), escapedEl = $('escaped'), dangerFill = $('dangerFill');
+const startScreen = $('startScreen'), overScreen = $('gameOverScreen'), pauseScreen = $('pauseScreen');
+const comboText = $('comboText'), voiceAd = $('voiceAd'), nameInput = $('playerName'), nameErr = $('nameError');
+const MAX_ESCAPED = 8, MAX_SPEED_LEVEL = 10;
+const colors = ['#ff405c', '#36e7ff', '#ffd83d', '#a66cff', '#40ff87', '#ff75d8', '#ff8b3d'];
 
-let score = 0, level = 1, escaped = 0, maxEscaped = 8;
-let balloons = [], particles = [];
-let gameRunning = false, spawnInterval = null, animationId = null;
-let combo = 0, lastPopTime = 0, adPlayed = false;
-const colors = ["#ff405c", "#36e7ff", "#ffd83d", "#a66cff", "#40ff87", "#ff75d8", "#ff8b3d"];
+let state = 'menu';                     // menu | playing | paused | over
+let score = 0, level = 1, escaped = 0, combo = 0, lastPopTime = 0;
+let balloons = [], particles = [], rings = [];
+let raf = 0, lastTs = 0, spawnTimer = 0, comboTimer = 0, adTimer = 0;
+let playerName = '', W = 0, H = 0, dpr = 1;
+const sprites = {};
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener('resize', resize);
+
+/* بالونات جاهزة (Sprites) بدل إنشاء Gradient في كل إطار */
+function makeSprite(c) {
+    const s = document.createElement('canvas'); s.width = s.height = 128;
+    const g = s.getContext('2d'), R = 56, hl = 64 - R / 3;
+    g.beginPath(); g.arc(68, 70, R, 0, 6.2832); g.fillStyle = 'rgba(0,0,0,0.25)'; g.fill();
+    const gr = g.createRadialGradient(hl, hl, 2, 64, 64, R);
+    gr.addColorStop(0, '#fff'); gr.addColorStop(0.15, c); gr.addColorStop(1, c);
+    g.beginPath(); g.arc(64, 64, R, 0, 6.2832); g.fillStyle = gr; g.fill();
+    g.beginPath(); g.arc(hl, hl, R / 5, 0, 6.2832); g.fillStyle = 'rgba(255,255,255,0.65)'; g.fill();
+    return s;
+}
+colors.forEach(c => sprites[c] = makeSprite(c));
 
 /* =====================================================
-   AUDIO SYSTEM
+   AUDIO
 ===================================================== */
-let audioContext = null;
+let ac = null, muted = store.get('bc_muted') === '1', adPlayed = false;
 function initAudio() {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioContext.state === "suspended") audioContext.resume();
+    try {
+        if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+        if (ac.state === 'suspended') ac.resume();
+    } catch (e) {}
 }
-
-function playTone(freq, type, duration, vol) {
-    initAudio();
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain); gain.connect(audioContext.destination);
-    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-    if(type === 'pop') osc.frequency.exponentialRampToValueAtTime(250, audioContext.currentTime + duration);
-    if(type === 'over') osc.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + duration);
-    gain.gain.setValueAtTime(vol, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-    osc.start(); osc.stop(audioContext.currentTime + duration);
+function tone(freq, type, dur, vol, delay = 0) {
+    if (muted || !ac) return;
+    try {
+        const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+        o.connect(g); g.connect(ac.destination);
+        o.frequency.setValueAtTime(freq, t);
+        if (type === 'pop') o.frequency.exponentialRampToValueAtTime(250, t + dur);
+        if (type === 'over') o.frequency.exponentialRampToValueAtTime(150, t + dur);
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.01, t + dur);
+        o.start(t); o.stop(t + dur);
+    } catch (e) {}
 }
-function playPopSound() { playTone(700, 'pop', 0.1, 0.35); }
-function playGameOverSound() { playTone(400, 'over', 0.6, 0.35); }
-function playLevelSound() {
-    initAudio();
-    [523, 659, 784].forEach((freq, i) => {
-        const osc = audioContext.createOscillator(), gain = audioContext.createGain();
-        osc.connect(gain); gain.connect(audioContext.destination);
-        const time = audioContext.currentTime + i * 0.12;
-        osc.frequency.setValueAtTime(freq, time);
-        gain.gain.setValueAtTime(0.3, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
-        osc.start(time); osc.stop(time + 0.3);
-    });
-}
+const popSound = () => tone(700, 'pop', 0.1, 0.35);
+const overSound = () => tone(400, 'over', 0.6, 0.35);
+const levelSound = () => [523, 659, 784].forEach((f, i) => tone(f, '', 0.3, 0.3, i * 0.12));
 function playVoiceAd() {
-    if (adPlayed || !voiceAd) return;
-    voiceAd.currentTime = 0;
-    const promise = voiceAd.play();
-    if (promise !== undefined) {
-        promise.catch(e => console.log("Ad play prevented:", e));
-    }
-    adPlayed = true;
+    if (adPlayed) return; adPlayed = true;
+    try { voiceAd.muted = muted; voiceAd.currentTime = 0; const p = voiceAd.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
 }
+function applyMute() { $('soundBtn').textContent = muted ? '🔇' : '🔊'; voiceAd.muted = muted; }
+$('soundBtn').addEventListener('click', () => { muted = !muted; store.set('bc_muted', muted ? '1' : '0'); applyMute(); initAudio(); });
 
 /* =====================================================
-   CLASSES (Balloon & Particle)
+   GAME LOGIC
 ===================================================== */
 class Balloon {
     constructor() {
-        this.radius = 30 + Math.random() * 22;
-        this.x = this.radius + Math.random() * (canvas.width - this.radius * 2);
-        this.y = canvas.height + 70;
-        this.speed = 1.3 + level * 0.35 + Math.random() * 1.7;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
-        this.angle = Math.random() * Math.PI * 2;
+        this.r = 30 + Math.random() * 22;
+        this.x = this.r + Math.random() * Math.max(1, W - this.r * 2);
+        this.y = H + 70;
+        this.speed = 1.3 + Math.min(level, MAX_SPEED_LEVEL) * 0.35 + Math.random() * 1.7;   // بكسل لكل إطار 60Hz
+        this.color = colors[(Math.random() * colors.length) | 0];
+        this.angle = Math.random() * 6.2832;
         this.swing = 0.5 + Math.random() * 1.5;
     }
-    update() {
-        this.y -= this.speed;
-        this.angle += 0.025;
-        this.x += Math.sin(this.angle) * this.swing;
+    update(dt) {
+        this.y -= this.speed * dt;
+        this.angle += 0.025 * dt;
+        this.x = Math.min(W - this.r, Math.max(this.r, this.x + Math.sin(this.angle) * this.swing * dt));
     }
-    draw() {
-        // Shadow
-        ctx.beginPath(); ctx.arc(this.x + 3, this.y + 5, this.radius, 0, Math.PI*2);
-        ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fill();
-        // Body
-        const gradient = ctx.createRadialGradient(this.x - this.radius/3, this.y - this.radius/3, 2, this.x, this.y, this.radius);
-        gradient.addColorStop(0, "#ffffff"); gradient.addColorStop(0.15, this.color); gradient.addColorStop(1, this.color);
-        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-        ctx.fillStyle = gradient; ctx.fill();
-        // Shine
-        ctx.beginPath(); ctx.arc(this.x - this.radius/3, this.y - this.radius/3, this.radius/5, 0, Math.PI*2);
-        ctx.fillStyle = "rgba(255,255,255,0.65)"; ctx.fill();
-        // String
-        ctx.beginPath(); ctx.moveTo(this.x, this.y + this.radius);
-        ctx.lineTo(this.x + Math.sin(this.angle)*8, this.y + this.radius + 35);
-        ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.stroke();
-    }
-    isClicked(x, y) {
-        const dx = x - this.x, dy = y - this.y;
-        return (Math.sqrt(dx * dx + dy * dy) < this.radius + 10); // Added padding for mobile touch
-    }
+    hit(x, y) { const dx = x - this.x, dy = y - this.y, rr = this.r + 10; return dx * dx + dy * dy < rr * rr; }
 }
 
-class Particle {
-    constructor(x, y, color) {
-        this.x = x; this.y = y;
-        this.vx = (Math.random() - 0.5) * 10;
-        this.vy = (Math.random() - 0.5) * 10;
-        this.color = color; this.life = 45;
-        this.size = 2 + Math.random() * 5;
-    }
-    update() {
-        this.x += this.vx; this.y += this.vy; this.vy += 0.15; this.life--;
-    }
-    draw() {
-        ctx.globalAlpha = this.life / 45;
-        ctx.fillStyle = this.color;
-        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
-        ctx.globalAlpha = 1;
-    }
-}
-function createExplosion(x, y, color) {
-    for (let i = 0; i < 25; i++) particles.push(new Particle(x, y, color));
+function explode(x, y, color, r) {
+    rings.push({ x, y, r: r * 0.6, life: 1, color });
+    if (particles.length > 160) return;
+    for (let i = 0; i < 18; i++) particles.push({
+        x, y, vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+        color, life: 45, size: 2 + Math.random() * 4
+    });
 }
 
-/* =====================================================
-   GAME LOGIC & TOUCH EVENTS
-===================================================== */
-function spawnBalloon() { if (gameRunning) balloons.push(new Balloon()); }
+function updateEsc() {
+    escapedEl.textContent = escaped;
+    dangerFill.style.width = Math.max(0, 100 - (escaped / MAX_ESCAPED) * 100) + '%';
+    $('escBox').classList.toggle('warn', escaped >= MAX_ESCAPED - 2);
+}
 
+function levelFx() {
+    const b = $('levelBanner'), lb = $('levelBox');
+    b.textContent = '⭐ المستوى ' + level;
+    [b, lb].forEach(el => el.classList.remove('show', 'pulse'));
+    void b.offsetWidth; b.classList.add('show'); lb.classList.add('pulse');
+}
 function updateLevel() {
-    const newLevel = Math.floor(score / 8) + 1;
-    if (newLevel > level) {
-        level = newLevel; levelEl.textContent = level; playLevelSound();
-        clearInterval(spawnInterval);
-        spawnInterval = setInterval(spawnBalloon, Math.max(300, 1000 - level * 70));
-    }
+    const nl = Math.floor(score / 8) + 1;       // كل 8 نقاط = مستوى
+    if (nl > level) { level = nl; levelEl.textContent = level; levelSound(); levelFx(); }
 }
 
 function updateCombo() {
-    const now = Date.now();
+    const now = performance.now();
     combo = (now - lastPopTime < 900) ? combo + 1 : 1;
     lastPopTime = now;
+    const bonus = (combo >= 5 && combo % 5 === 0) ? 2 : 0;   // مكافأة كل 5 في السلسلة
+    score += bonus;
     if (combo >= 3) {
-        comboText.textContent = "🔥 COMBO x" + combo;
-        comboText.classList.add("show");
-        setTimeout(() => comboText.classList.remove("show"), 450);
+        comboText.textContent = '🔥 COMBO x' + combo + (bonus ? ' +' + bonus : '');
+        comboText.classList.add('show');
+        clearTimeout(comboTimer);
+        comboTimer = setTimeout(() => comboText.classList.remove('show'), 450);
     }
 }
 
-function checkCollision(x, y) {
+function hitAt(x, y) {
     for (let i = balloons.length - 1; i >= 0; i--) {
-        if (balloons[i].isClicked(x, y)) {
-            createExplosion(balloons[i].x, balloons[i].y, balloons[i].color);
-            playPopSound();
-            balloons.splice(i, 1);
-            score++; scoreEl.textContent = score;
-            updateCombo(); updateLevel();
-            break;
+        const b = balloons[i];
+        if (!b.hit(x, y)) continue;
+        explode(b.x, b.y, b.color, b.r); popSound();
+        balloons.splice(i, 1);
+        score++; updateCombo();
+        scoreEl.textContent = score; updateLevel();
+        break;
+    }
+}
+canvas.addEventListener('pointerdown', e => {
+    if (state !== 'playing' || e.button > 0) return;
+    e.preventDefault(); hitAt(e.clientX, e.clientY);   // يدعم اللمس المتعدد: كل إصبع حدث مستقل
+});
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+function loop(ts) {
+    if (state !== 'playing') return;
+    const ms = Math.min(ts - lastTs, 50); lastTs = ts;
+    const dt = ms / 16.667;                       // 1 = إطار واحد على 60Hz
+
+    spawnTimer -= ms;
+    if (spawnTimer <= 0) { balloons.push(new Balloon()); spawnTimer = Math.max(300, 1000 - level * 70); }
+
+    for (let i = balloons.length - 1; i >= 0; i--) {
+        const b = balloons[i]; b.update(dt);
+        if (b.y < -b.r - 50) {
+            balloons.splice(i, 1); escaped++; updateEsc();
+            if (escaped >= MAX_ESCAPED) { gameOver(); return; }
         }
     }
-}
 
-// دعم اللمس المتعدد (Multi-touch)
-canvas.addEventListener("touchstart", (e) => {
-    if (!gameRunning) return;
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    for (let t = 0; t < e.changedTouches.length; t++) {
-        checkCollision(e.changedTouches[t].clientX - rect.left, e.changedTouches[t].clientY - rect.top);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.beginPath();
+    for (let i = 0; i < 35; i++) { const x = (i * 97) % W, y = (i * 173) % H; ctx.moveTo(x + 2, y); ctx.arc(x, y, 2, 0, 6.2832); }
+    ctx.fill();
+
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
+    for (const b of balloons) {
+        const k = b.r / 56;
+        ctx.drawImage(sprites[b.color], b.x - 64 * k, b.y - 64 * k, 128 * k, 128 * k);
+        ctx.moveTo(b.x, b.y + b.r); ctx.lineTo(b.x + Math.sin(b.angle) * 8, b.y + b.r + 35);
     }
-}, { passive: false });
+    ctx.stroke();
 
-canvas.addEventListener("mousedown", (e) => {
-    if (!gameRunning) return;
-    const rect = canvas.getBoundingClientRect();
-    checkCollision(e.clientX - rect.left, e.clientY - rect.top);
-});
+    let n = 0;
+    for (const p of particles) {
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.15 * dt; p.life -= dt;
+        if (p.life <= 0) continue;
+        ctx.globalAlpha = p.life / 45; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
+        particles[n++] = p;
+    }
+    particles.length = n; n = 0;
+    ctx.lineWidth = 3;
+    for (const g of rings) {
+        g.r += 3 * dt; g.life -= 0.07 * dt;
+        if (g.life <= 0) continue;
+        ctx.globalAlpha = g.life; ctx.strokeStyle = g.color;
+        ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 6.2832); ctx.stroke();
+        rings[n++] = g;
+    }
+    rings.length = n; ctx.globalAlpha = 1; ctx.lineWidth = 1;
+
+    raf = requestAnimationFrame(loop);
+}
 
 /* =====================================================
-   LOOP & STATE
+   STATE CONTROL
 ===================================================== */
-function gameOver() {
-    if (!gameRunning) return;
-    gameRunning = false; clearInterval(spawnInterval); playGameOverSound();
-    
-    document.getElementById("finalScore").textContent = "🎯 نقاطك: " + score;
-    const msg = document.getElementById("finalMessage");
-    msg.textContent = score >= 30 ? "🔥 مذهل! أنت سريع جدًا!" : (score >= 15 ? "👏 أداء ممتاز!" : "💪 حاول مرة أخرى!");
-    
-    // حفظ النتيجة إذا كتب اسمه
-    const playerName = document.getElementById("playerName").value.trim();
-    saveScore(playerName, score);
-    
-    gameOverScreen.classList.remove("hidden");
-}
-
-function gameLoop() {
-    if (!gameRunning) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // الخلفية
-    for (let i = 0; i < 35; i++) {
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.beginPath(); ctx.arc((i*97)%canvas.width, (i*173)%canvas.height, 2, 0, Math.PI*2); ctx.fill();
-    }
-
-    // البالونات
-    for (let i = balloons.length - 1; i >= 0; i--) {
-        balloons[i].update(); balloons[i].draw();
-        if (balloons[i].y < -balloons[i].radius - 50) {
-            balloons.splice(i, 1); escaped++; escapedEl.textContent = escaped;
-            if (escaped >= maxEscaped) { gameOver(); return; }
-        }
-    }
-
-    // الجزيئات
-    for (let i = particles.length - 1; i >= 0; i--) {
-        particles[i].update(); particles[i].draw();
-        if (particles[i].life <= 0) particles.splice(i, 1);
-    }
-
-    dangerFill.style.width = Math.max(0, 100 - (escaped / maxEscaped) * 100) + "%";
-    animationId = requestAnimationFrame(gameLoop);
+function resetGame() {
+    cancelAnimationFrame(raf); clearTimeout(comboTimer);
+    score = 0; level = 1; escaped = 0; combo = 0; lastPopTime = 0; spawnTimer = 0;
+    balloons = []; particles = []; rings = [];
+    scoreEl.textContent = '0'; levelEl.textContent = '1';
+    comboText.classList.remove('show'); $('levelBanner').classList.remove('show');
+    $('saveStatus').textContent = ''; $('retryBtn').classList.add('hidden');
+    updateEsc();
 }
 
 function startGame() {
-    const playerNameInput = document.getElementById("playerName");
-    if(!playerNameInput.value.trim()){
-        alert("يرجى كتابة اسمك للمنافسة في قائمة المتصدرين!");
-        playerNameInput.focus();
-        return;
+    const name = nameInput.value.trim().slice(0, 15);
+    if (!name) {
+        nameErr.textContent = '⚠️ اكتب اسمك أولًا للمنافسة في قائمة المتصدرين';
+        nameInput.classList.remove('bad'); void nameInput.offsetWidth; nameInput.classList.add('bad');
+        nameInput.focus(); return;
     }
-    
-    initAudio(); playVoiceAd();
-     score = 0; level = 1; escaped = 0; combo = 0; balloons = []; particles = [];
-    scoreEl.textContent = "0"; levelEl.textContent = "1"; escapedEl.textContent = "0";
-    dangerFill.style.width = "100%"; document.getElementById('saveStatus').textContent = "";
-    
-    startScreen.classList.add("hidden"); gameOverScreen.classList.add("hidden");
-    clearInterval(spawnInterval); cancelAnimationFrame(animationId);
-    
-    gameRunning = true; spawnInterval = setInterval(spawnBalloon, 1000);
-    spawnBalloon(); gameLoop();
+    playerName = name; store.set('bc_name', name); nameErr.textContent = '';
+    initAudio(); playVoiceAd(); resetGame();
+    startScreen.classList.add('hidden'); overScreen.classList.add('hidden'); pauseScreen.classList.add('hidden');
+    $('pauseBtn').textContent = '⏸'; $('topLeftWidget').classList.remove('open');
+    document.body.classList.add('playing');
+    state = 'playing'; lastTs = performance.now(); raf = requestAnimationFrame(loop);
 }
 
-document.getElementById("startBtn").addEventListener("click", startGame);
-document.getElementById("restartBtn").addEventListener("click", () => {
-    fetchLeaderboard(); // تحديث القائمة خلف الكواليس
-    startScreen.classList.remove("hidden"); // العودة للشاشة الرئيسية لتأكيد الاسم
-    gameOverScreen.classList.add("hidden");
+function pauseGame() {
+    if (state !== 'playing') return;
+    state = 'paused'; cancelAnimationFrame(raf);
+    pauseScreen.classList.remove('hidden'); $('pauseBtn').textContent = '▶';
+}
+function resumeGame() {
+    if (state !== 'paused') return;
+    state = 'playing'; pauseScreen.classList.add('hidden'); $('pauseBtn').textContent = '⏸';
+    lastTs = performance.now(); raf = requestAnimationFrame(loop);
+}
+function toMenu() {
+    cancelAnimationFrame(raf); state = 'menu'; document.body.classList.remove('playing');
+    pauseScreen.classList.add('hidden'); overScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
+    ctx.clearRect(0, 0, W, H); fetchLeaderboard();
+}
+
+function gameOver() {
+    if (state !== 'playing') return;
+    state = 'over'; cancelAnimationFrame(raf); document.body.classList.remove('playing');
+    overSound();
+    $('finalScore').textContent = '🎯 نقاطك: ' + score;
+    $('finalMessage').textContent = score >= 30 ? '🔥 مذهل! أنت سريع جدًا!' : (score >= 15 ? '👏 أداء ممتاز!' : '💪 حاول مرة أخرى!');
+    saveScore(playerName, score);
+    overScreen.classList.remove('hidden');
+}
+
+/* =====================================================
+   EVENTS
+===================================================== */
+$('startBtn').addEventListener('click', startGame);
+$('restartBtn').addEventListener('click', startGame);
+$('menuBtn').addEventListener('click', toMenu);
+$('quitBtn').addEventListener('click', toMenu);
+$('resumeBtn').addEventListener('click', resumeGame);
+$('retryBtn').addEventListener('click', () => saveScore(playerName, score));
+$('pauseBtn').addEventListener('click', () => state === 'playing' ? pauseGame() : resumeGame());
+nameInput.addEventListener('input', () => { nameErr.textContent = ''; nameInput.classList.remove('bad'); });
+$('adToggle').addEventListener('click', () => {
+    const w = $('topLeftWidget'), open = w.classList.toggle('open');
+    clearTimeout(adTimer);
+    if (open && state === 'playing') adTimer = setTimeout(() => w.classList.remove('open'), 4000);
 });
-canvas.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        if (state === 'menu' || state === 'over') { e.preventDefault(); startGame(); }
+        else if (state === 'paused') { e.preventDefault(); resumeGame(); }
+    } else if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && e.target !== nameInput) {
+        if (state === 'playing') pauseGame(); else if (state === 'paused') resumeGame();
+    }
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+
+/* =====================================================
+   INIT
+===================================================== */
+resize(); applyMute();
+nameInput.value = (store.get('bc_name') || '').slice(0, 15);
+fetchLeaderboard();
+})();
 </script>
 </body>
 </html>
